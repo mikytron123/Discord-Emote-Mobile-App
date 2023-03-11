@@ -3,6 +3,7 @@ package com.example.discordemotelist
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,11 +18,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.example.discordemotelist.Data.DataSource
-import com.example.discordemotelist.Model.Emote
+import com.example.discordemotelist.Model.DiscordAsset
 import com.example.discordemotelist.ui.theme.DiscordEmoteListTheme
+import com.example.discordemotelist.ui.viewmodel.EmoteListViewModel
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +37,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    EmoteApp()
+                    val viewmodel:EmoteListViewModel by viewModels()
+                    EmoteApp(viewmodel)
                 }
             }
         }
@@ -40,36 +46,42 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun EmoteApp() {
+fun EmoteApp(viewmodel: EmoteListViewModel) {
 
-        val context = LocalContext.current
-        val emotelist by remember {
-           mutableStateOf( DataSource().loademotelist(context))
-        }
-        var searchtext by remember {
-            mutableStateOf("")
-        }
+    val token: String = BuildConfig.TOKEN
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val state by viewmodel.uiState.collectAsState()
+    val isSearching by viewmodel.isSearching.collectAsState()
 
-        var filteredlist by remember {
-            mutableStateOf(listOf<Emote>())
-        }
-            EmoteList(searchtext,filteredlist,
-                {searchtext=it},
-                onclickevent = {filteredlist = emotelist.filter { it.name.lowercase().contains(searchtext.lowercase())}})
-    }
+    AssetList(state.searchtext, state.assetlist,
+        viewmodel::updatesearch,
+        onclickevent = {
+          viewmodel.searchdata(context)
+        },downloaddata = {
+                coroutineScope.launch {
+                    viewmodel.downloaddata(token, context)
+                }
+        }, isSearching = isSearching
+    )
+}
 
 
 
 @Composable
-fun EmoteList(searchtext:String,
-              filteredlist:List<Emote>,
-              onsearchchanged: (String)->Unit,
-              onclickevent: () -> Unit) {
+fun AssetList(
+    searchtext:String,
+    filteredlist:List<DiscordAsset>,
+    onsearchchanged: (String)->Unit,
+    onclickevent: () -> Unit,
+    downloaddata: () -> Unit,
+    isSearching: Boolean = false
+) {
 
     LazyColumn {
         item{
             TextField(value = searchtext, onValueChange = onsearchchanged,
-            modifier = Modifier.fillMaxWidth())
+            modifier = Modifier.fillMaxWidth(), singleLine = true)
         }
         item {
             Button(onClick = onclickevent
@@ -77,25 +89,50 @@ fun EmoteList(searchtext:String,
                 Text(text = "Search")
             }
         }
-        items(filteredlist) { emote ->
-            EmoteCard(emote)
+        item {
+            Button(onClick = downloaddata
+                , modifier = Modifier.fillMaxWidth()) {
+                Text(text = "Download")
+            }
         }
+        if (isSearching) {
+            item{CircularProgressIndicator()}
+        } else {
+           items(filteredlist) { emote ->
+            AssetCard(emote)
+        }
+        }
+
+    }
+}
+
+fun checktype(emote:DiscordAsset): String{
+    return if ("sticker" in emote.url){
+        "sticker"
+    }else{
+        "emote"
     }
 }
 
 @Composable
-fun EmoteCard(emote: Emote) {
+fun AssetCard(emote: DiscordAsset) {
     val clipboardManager = LocalClipboardManager.current
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .clickable { clipboardManager.setText(AnnotatedString("${emote.url}?size=48")) },
-             elevation = 4.dp
+            .clickable {
+                if ("emoji" in emote.url) {
+                    clipboardManager.setText(AnnotatedString("${emote.url}?size=48"))
+                } else {
+                    clipboardManager.setText(AnnotatedString(emote.url))
+                }
+            },
+        elevation = 4.dp
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            EmoteImage(emote = emote)
+            AssetImage(asset = emote)
             Text(
-                text = emote.name,
+                text = emote.name + " (${checktype(emote)})",
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.h6
             )
@@ -104,9 +141,9 @@ fun EmoteCard(emote: Emote) {
 }
 
 @Composable
-fun EmoteImage(emote:Emote){
+fun AssetImage(asset:DiscordAsset){
     GlideImage(
-        imageModel = { emote.url }, // loading a network image using an URL.
+        imageModel = { asset.url }, // loading a network image using an URL.
         imageOptions = ImageOptions(
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center,
@@ -114,6 +151,7 @@ fun EmoteImage(emote:Emote){
         modifier = Modifier
             .fillMaxHeight()
             .height(60.dp)
+            .width(60.dp)
     )
 
 }
