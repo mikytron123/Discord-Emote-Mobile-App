@@ -1,5 +1,7 @@
 package com.example.discordemotelist
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -62,7 +64,8 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
                 coroutineScope.launch {
                     viewmodel.downloaddata(token, context)
                 }
-        }, isSearching = isSearching
+        }, isSearching = isSearching,
+        context = context
     )
 }
 
@@ -75,7 +78,8 @@ fun AssetList(
     onsearchchanged: (String)->Unit,
     onclickevent: () -> Unit,
     downloaddata: () -> Unit,
-    isSearching: Boolean = false
+    isSearching: Boolean = false,
+    context: Context
 ) {
 
     LazyColumn {
@@ -99,7 +103,7 @@ fun AssetList(
             item{CircularProgressIndicator()}
         } else {
            items(filteredlist) { emote ->
-            AssetCard(emote)
+            AssetCard(emote,context)
         }
         }
 
@@ -115,17 +119,28 @@ fun checktype(emote:DiscordAsset): String{
 }
 
 @Composable
-fun AssetCard(emote: DiscordAsset) {
+fun AssetCard(emote: DiscordAsset,context: Context) {
     val clipboardManager = LocalClipboardManager.current
     Card(
         modifier = Modifier
             .padding(8.dp)
             .clickable {
-                if ("emoji" in emote.url) {
-                    clipboardManager.setText(AnnotatedString("${emote.url}?size=48"))
+
+                val shareurl = if ("emoji" in emote.url) {
+                    "${emote.url}?size=48"
                 } else {
-                    clipboardManager.setText(AnnotatedString(emote.url))
+                    emote.url
                 }
+                val sendIntent: Intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, shareurl)
+                    type = "text/plain"
+                }
+
+                val shareIntent = Intent.createChooser(sendIntent, null)
+                context.startActivity(shareIntent)
+
+
             },
         elevation = 4.dp
     ) {
