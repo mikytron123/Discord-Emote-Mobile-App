@@ -27,6 +27,9 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -111,7 +114,9 @@ fun AssetList(
 }
 
 fun checktype(emote:DiscordAsset): String{
-    return if ("sticker" in emote.url){
+    return if ("json" in emote.url){
+        "lottie"
+    }else if ("sticker" in emote.url){
         "sticker"
     }else{
         "emote"
@@ -145,7 +150,11 @@ fun AssetCard(emote: DiscordAsset,context: Context) {
         elevation = 4.dp
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            AssetImage(asset = emote)
+            if (checktype(emote)=="lottie"){
+                LottieImage(url = emote.url)
+            }else{
+                AssetImage(url = emote.url)
+            }
             Text(
                 text = emote.name + " (${checktype(emote)})",
                 modifier = Modifier.padding(16.dp),
@@ -156,9 +165,9 @@ fun AssetCard(emote: DiscordAsset,context: Context) {
 }
 
 @Composable
-fun AssetImage(asset:DiscordAsset){
+fun AssetImage(url:String){
     GlideImage(
-        imageModel = { asset.url }, // loading a network image using an URL.
+        imageModel = { url }, // loading a network image using an URL.
         imageOptions = ImageOptions(
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center,
@@ -169,4 +178,17 @@ fun AssetImage(asset:DiscordAsset){
             .width(60.dp)
     )
 
+}
+
+@Composable
+fun LottieImage(url:String){
+    val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
+    LottieAnimation(
+        composition = composition,
+        iterations = 10,
+        modifier = Modifier
+            .fillMaxHeight()
+            .height(60.dp)
+            .width(60.dp)
+    )
 }

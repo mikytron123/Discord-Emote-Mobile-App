@@ -3,6 +3,7 @@ package com.example.discordemotelist.Data
 import com.example.discordemotelist.Model.Emoji
 import com.example.discordemotelist.Model.Guild
 import com.example.discordemotelist.Model.Sticker
+import com.example.discordemotelist.Model.Stickerpacklist
 
 interface DownloadService {
 
@@ -12,4 +13,5 @@ interface DownloadService {
 
     suspend fun getstickers(token:String,id:String):List<Sticker>
 
+    suspend fun getstickerpacks(token:String):Stickerpacklist
 }
