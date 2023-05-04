@@ -99,7 +99,7 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
             for (sticker in pack.stickers){
                 if (sticker.format_type==3) {
                     val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
-                    assetlist.add(mutableMapOf("name" to sticker.name,"url" to url))
+                    assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url))
                 }
             }
 

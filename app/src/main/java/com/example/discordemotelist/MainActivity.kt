@@ -29,6 +29,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 
 @AndroidEntryPoint
@@ -185,7 +186,7 @@ fun LottieImage(url:String){
     val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
     LottieAnimation(
         composition = composition,
-        iterations = 10,
+        iterations = LottieConstants.IterateForever,
         modifier = Modifier
             .fillMaxHeight()
             .height(60.dp)
