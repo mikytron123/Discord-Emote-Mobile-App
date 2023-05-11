@@ -90,6 +90,10 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
                 if (sticker.format_type == 1){
                     val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
                     assetlist.add(mutableMapOf("name" to sticker.name,"url" to url))
+                } else if (sticker.format_type == 2){
+                    val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
+                    assetlist.add(mutableMapOf("name" to sticker.name,"url" to url))
+
                 }
             }
 
@@ -99,6 +103,9 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
             for (sticker in pack.stickers){
                 if (sticker.format_type==3) {
                     val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
+                    assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url))
+                }else if (sticker.format_type ==2){
+                    val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
                     assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url))
                 }
             }

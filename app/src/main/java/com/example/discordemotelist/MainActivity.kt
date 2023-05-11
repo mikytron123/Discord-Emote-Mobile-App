@@ -3,6 +3,7 @@ package com.example.discordemotelist
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -19,11 +20,13 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import coil.ImageLoader
 import com.example.discordemotelist.Data.DataSource
 import com.example.discordemotelist.Model.DiscordAsset
 import com.example.discordemotelist.ui.theme.DiscordEmoteListTheme
 import com.example.discordemotelist.ui.viewmodel.EmoteListViewModel
-import com.skydoves.landscapist.ImageOptions
+//import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -31,6 +34,10 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.bumptech.glide.Glide
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.coil.CoilImage
+import me.tatarka.android.apngrs.coil.ApngDecoderDecoder
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -59,6 +66,7 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
     val context = LocalContext.current
     val state by viewmodel.uiState.collectAsState()
     val isSearching by viewmodel.isSearching.collectAsState()
+    val imgloader = viewmodel.imgloader
 
     AssetList(state.searchtext, state.assetlist,
         viewmodel::updatesearch,
@@ -69,6 +77,7 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
                     viewmodel.downloaddata(token, context)
                 }
         }, isSearching = isSearching,
+        imageLoader=imgloader,
         context = context
     )
 }
@@ -83,6 +92,7 @@ fun AssetList(
     onclickevent: () -> Unit,
     downloaddata: () -> Unit,
     isSearching: Boolean = false,
+    imageLoader: ImageLoader,
     context: Context
 ) {
 
@@ -107,17 +117,19 @@ fun AssetList(
             item{CircularProgressIndicator()}
         } else {
            items(filteredlist) { emote ->
-            AssetCard(emote,context)
+            AssetCard(emote, imageLoader,context)
         }
         }
 
     }
 }
 
-fun checktype(emote:DiscordAsset): String{
-    return if ("json" in emote.url){
+fun checktype(url:String): String{
+    return if ("json" in url){
         "lottie"
-    }else if ("sticker" in emote.url){
+    }else if(".apng" in url) {
+         "apng"
+    }else if ("sticker" in url){
         "sticker"
     }else{
         "emote"
@@ -125,7 +137,7 @@ fun checktype(emote:DiscordAsset): String{
 }
 
 @Composable
-fun AssetCard(emote: DiscordAsset,context: Context) {
+fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
     val clipboardManager = LocalClipboardManager.current
     Card(
         modifier = Modifier
@@ -135,7 +147,7 @@ fun AssetCard(emote: DiscordAsset,context: Context) {
                 val shareurl = if ("emoji" in emote.url) {
                     "${emote.url}?size=48"
                 } else {
-                    emote.url
+                    emote.url.replace(".apng",".png")
                 }
                 val sendIntent: Intent = Intent().apply {
                     action = Intent.ACTION_SEND
@@ -151,13 +163,16 @@ fun AssetCard(emote: DiscordAsset,context: Context) {
         elevation = 4.dp
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            if (checktype(emote)=="lottie"){
+            val emotetype = checktype(emote.url)
+            if (emotetype=="lottie"){
                 LottieImage(url = emote.url)
-            }else{
+            } else if (emotetype=="apng"){
+                ApngImage(url = emote.url,imageLoader=imageLoader)
+            } else{
                 AssetImage(url = emote.url)
             }
             Text(
-                text = emote.name + " (${checktype(emote)})",
+                text = emote.name + " (${checktype(emote.url)})",
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.h6
             )
@@ -191,5 +206,35 @@ fun LottieImage(url:String){
             .fillMaxHeight()
             .height(60.dp)
             .width(60.dp)
+    )
+}
+
+
+@Composable
+fun ApngImage(url:String,imageLoader: ImageLoader){
+//    AndroidView(
+//        factory = {
+//            ImageView(it)
+//        },
+//        update = {
+//            Glide.with(it).load(url.removeSuffix(".apng")+".png").into(it)
+//        },
+//        modifier = Modifier
+//            .fillMaxHeight()
+//            .height(60.dp)
+//            .width(60.dp)
+//    )
+//    val imageLoader = ImageLoader.Builder(LocalContext.current)
+//        .components {
+//            add(ApngDecoderDecoder.Factory())
+//        }
+//        .build()
+    CoilImage(
+        imageModel = { url.replace(".apng",".png") }, // loading a network image or local resource using an URL.
+        imageOptions = ImageOptions(
+            contentScale = ContentScale.Crop,
+            alignment = Alignment.Center
+        ),
+        imageLoader = {imageLoader}
     )
 }

@@ -2,6 +2,7 @@ package com.example.discordemotelist.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import coil.ImageLoader
 import com.example.discordemotelist.Data.DownloadServiceImpl
 import com.example.discordemotelist.Model.DiscordAsset
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,13 +17,15 @@ data class Searchstate(
     val searchtext: String = ""
 )
 @HiltViewModel
-class EmoteListViewModel @Inject constructor(private val service: DownloadServiceImpl): ViewModel() {
+class EmoteListViewModel @Inject constructor(private val service: DownloadServiceImpl,
+                                             private val imageLoader: ImageLoader): ViewModel() {
     private val _uistate = MutableStateFlow(Searchstate())
     val uiState = _uistate.asStateFlow()
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
+    val imgloader = imageLoader
 
     fun resetsearch(){
         _uistate.value = Searchstate()
