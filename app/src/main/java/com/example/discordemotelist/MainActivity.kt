@@ -212,29 +212,17 @@ fun LottieImage(url:String){
 
 @Composable
 fun ApngImage(url:String,imageLoader: ImageLoader){
-//    AndroidView(
-//        factory = {
-//            ImageView(it)
-//        },
-//        update = {
-//            Glide.with(it).load(url.removeSuffix(".apng")+".png").into(it)
-//        },
-//        modifier = Modifier
-//            .fillMaxHeight()
-//            .height(60.dp)
-//            .width(60.dp)
-//    )
-//    val imageLoader = ImageLoader.Builder(LocalContext.current)
-//        .components {
-//            add(ApngDecoderDecoder.Factory())
-//        }
-//        .build()
+
     CoilImage(
         imageModel = { url.replace(".apng",".png") }, // loading a network image or local resource using an URL.
         imageOptions = ImageOptions(
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center
         ),
-        imageLoader = {imageLoader}
+        imageLoader = {imageLoader},
+        modifier = Modifier
+            .fillMaxHeight()
+            .height(60.dp)
+            .width(60.dp)
     )
 }

@@ -1,24 +1,23 @@
 package com.example.discordemotelist.Data
 
 import android.content.Context
-import android.util.Log
-import com.example.discordemotelist.Model.*
+import com.example.discordemotelist.Model.DiscordAsset
+import com.example.discordemotelist.Model.Emoji
+import com.example.discordemotelist.Model.Guild
+import com.example.discordemotelist.Model.Sticker
+import com.example.discordemotelist.Model.Stickerpacklist
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.delay
-import java.io.File
-import java.util.logging.Logger
 import javax.inject.Inject
 
-import kotlin.coroutines.*
-
 class DownloadServiceImpl @Inject constructor(private val client:HttpClient): DownloadService {
-    var baseurl = "https://discord.com/api/v10"
+    private var baseurl = "https://discord.com/api/v10"
 
     override suspend fun getservers(token: String): List<Guild> {
 
@@ -87,27 +86,30 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
             val stickerlist = getstickers(token, server.id)
 
             for (sticker in stickerlist) {
+                var url: String
                 if (sticker.format_type == 1){
-                    val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
-                    assetlist.add(mutableMapOf("name" to sticker.name,"url" to url))
+                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
                 } else if (sticker.format_type == 2){
-                    val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
-                    assetlist.add(mutableMapOf("name" to sticker.name,"url" to url))
-
+                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
+                }else{
+                    continue
                 }
+                assetlist.add(mutableMapOf("name" to sticker.name,"url" to url))
             }
 
         }
         val stickerpacklist = getstickerpacks(token)
         for (pack in stickerpacklist.sticker_packs){
             for (sticker in pack.stickers){
+                var url: String
                 if (sticker.format_type==3) {
-                    val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
-                    assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url))
+                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
                 }else if (sticker.format_type ==2){
-                    val url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
-                    assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url))
+                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
+                }else{
+                    continue
                 }
+                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url))
             }
 
         }
