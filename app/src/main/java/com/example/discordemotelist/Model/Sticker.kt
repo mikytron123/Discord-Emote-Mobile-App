@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class Sticker(
     val id:String,
     val name:String,
-    val format_type:Int
+    val format_type:Int,
+    val tags: String
 ) {
 }

@@ -49,7 +49,7 @@ class EmoteListViewModel @Inject constructor(private val service: DownloadServic
             return
         }
         val alldata = service.reademotes(context)
-        val filteredata = alldata.filter { it.name.lowercase().contains(searchtext.lowercase()) }
+        val filteredata = alldata.filter { it.name.lowercase().contains(searchtext.lowercase()) or it.tags.lowercase().contains(searchtext.lowercase()) }
         _uistate.update { state->
             state.copy(
                 assetlist = filteredata

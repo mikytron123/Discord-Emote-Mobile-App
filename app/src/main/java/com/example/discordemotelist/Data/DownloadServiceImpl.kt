@@ -78,7 +78,7 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
                 }
                 val url = "https://cdn.discordapp.com/emojis/" + emoji.id + ext
 
-                assetlist.add(mutableMapOf("name" to name,"url" to url))
+                assetlist.add(mutableMapOf("name" to name,"url" to url,"tags" to ""))
             }
 
             delay(1000)
@@ -94,7 +94,7 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
                 }else{
                     continue
                 }
-                assetlist.add(mutableMapOf("name" to sticker.name,"url" to url))
+                assetlist.add(mutableMapOf("name" to sticker.name,"url" to url,"tags" to sticker.tags))
             }
 
         }
@@ -109,7 +109,7 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
                 }else{
                     continue
                 }
-                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url))
+                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url,"tags" to sticker.tags))
             }
 
         }
