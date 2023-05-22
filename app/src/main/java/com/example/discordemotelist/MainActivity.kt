@@ -11,6 +11,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.ImageLoader
@@ -69,10 +74,9 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
     val imgloader = viewmodel.imgloader
 
     AssetList(state.searchtext, state.assetlist,
+        viewmodel = viewmodel,
         viewmodel::updatesearch,
-        onclickevent = {
-          viewmodel.searchdata(context)
-        },downloaddata = {
+        downloaddata = {
                 coroutineScope.launch {
                     viewmodel.downloaddata(token, context)
                 }
@@ -88,8 +92,8 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
 fun AssetList(
     searchtext:String,
     filteredlist:List<DiscordAsset>,
+    viewmodel: EmoteListViewModel,
     onsearchchanged: (String)->Unit,
-    onclickevent: () -> Unit,
     downloaddata: () -> Unit,
     isSearching: Boolean = false,
     imageLoader: ImageLoader,
@@ -98,14 +102,14 @@ fun AssetList(
 
     LazyColumn {
         item{
-            TextField(value = searchtext, onValueChange = onsearchchanged,
-            modifier = Modifier.fillMaxWidth(), singleLine = true)
-        }
-        item {
-            Button(onClick = onclickevent
-            , modifier = Modifier.fillMaxWidth()) {
-                Text(text = "Search")
-            }
+            TextField(searchtext,onsearchchanged,
+            Modifier.fillMaxWidth(),true,false, LocalTextStyle.current,
+                null,null,null,null,false,
+                VisualTransformation.None,KeyboardOptions(imeAction = ImeAction.Search),
+                KeyboardActions(onSearch =  {viewmodel.searchdata(context)}),
+                    true
+            )
+
         }
         item {
             Button(onClick = downloaddata
@@ -123,6 +127,7 @@ fun AssetList(
 
     }
 }
+
 
 fun checktype(url:String): String{
     return if ("json" in url){
@@ -147,7 +152,7 @@ fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
                 val shareurl = if ("emoji" in emote.url) {
                     "${emote.url}?size=48"
                 } else {
-                    emote.url.replace(".apng",".png")
+                    emote.url.replace(".apng", ".png")
                 }
                 val sendIntent: Intent = Intent().apply {
                     action = Intent.ACTION_SEND
