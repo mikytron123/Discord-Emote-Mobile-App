@@ -78,7 +78,7 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
                 }
                 val url = "https://cdn.discordapp.com/emojis/" + emoji.id + ext
 
-                assetlist.add(mutableMapOf("name" to name,"url" to url,"tags" to ""))
+                assetlist.add(mutableMapOf("name" to name,"url" to url,"tags" to "","type" to "emote"))
             }
 
             delay(1000)
@@ -87,14 +87,18 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
 
             for (sticker in stickerlist) {
                 var url: String
+                var stickertype: String
                 if (sticker.format_type == 1){
                     url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
+                    stickertype = "sticker"
                 } else if (sticker.format_type == 2){
-                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
+                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
+                    stickertype = "apng"
                 }else{
                     continue
                 }
-                assetlist.add(mutableMapOf("name" to sticker.name,"url" to url,"tags" to sticker.tags))
+                assetlist.add(mutableMapOf("name" to sticker.name,"url" to url,
+                                           "tags" to sticker.tags,"type" to stickertype))
             }
 
         }
@@ -102,14 +106,19 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
         for (pack in stickerpacklist.sticker_packs){
             for (sticker in pack.stickers){
                 var url: String
+                var stickertype:String
                 if (sticker.format_type==3) {
                     url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
+                    stickertype = "lottie"
                 }else if (sticker.format_type ==2){
-                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".apng"
+                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
+                    stickertype = "apng"
                 }else{
                     continue
                 }
-                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}","url" to url,"tags" to sticker.tags))
+                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}",
+                                           "url" to url,"tags" to sticker.tags,
+                                           "type" to stickertype))
             }
 
         }

@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 data class Searchstate(
-    val assetlist: List<DiscordAsset> = mutableListOf<DiscordAsset>(),
+    val emojilist: List<DiscordAsset> = mutableListOf<DiscordAsset>(),
+    val stickerlist: List<DiscordAsset> = mutableListOf<DiscordAsset>(),
     val searchtext: String = ""
 )
 @HiltViewModel
@@ -49,10 +50,14 @@ class EmoteListViewModel @Inject constructor(private val service: DownloadServic
             return
         }
         val alldata = service.reademotes(context)
-        val filteredata = alldata.filter { it.name.lowercase().contains(searchtext.lowercase()) or it.tags.lowercase().contains(searchtext.lowercase()) }
+        val filteredata = alldata.filter { (it.name.lowercase().contains(searchtext.lowercase())
+                                           or it.tags.lowercase().contains(searchtext.lowercase())) }
+        val emotedata = filteredata.filter{ (it.type == "emote")}
+        val stickerdata = filteredata.filter { (it.type != "emote") }
         _uistate.update { state->
             state.copy(
-                assetlist = filteredata
+                emojilist = emotedata,
+                stickerlist = stickerdata
             )
         }
     }

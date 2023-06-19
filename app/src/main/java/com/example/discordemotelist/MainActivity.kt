@@ -73,20 +73,67 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
     val isSearching by viewmodel.isSearching.collectAsState()
     val imgloader = viewmodel.imgloader
 
-    AssetList(state.searchtext, state.assetlist,
-        viewmodel = viewmodel,
-        viewmodel::updatesearch,
-        downloaddata = {
-                coroutineScope.launch {
-                    viewmodel.downloaddata(token, context)
+    var currentindex by remember {
+        mutableStateOf(0)
+    }
+
+    val titles = listOf("Emoji", "Stickers")
+    
+    Scaffold() {
+        Column(modifier = Modifier.padding(it)) {
+            TabRow(selectedTabIndex = currentindex) {
+                titles.forEachIndexed { index, title ->
+                    Tabs(
+                        title = title,
+                        onClick = {
+                            currentindex = index
+                        },
+                        selected = (index == currentindex)
+                    )
                 }
-        }, isSearching = isSearching,
-        imageLoader=imgloader,
-        context = context
-    )
+            }
+            if (currentindex == 0){
+                AssetList(state.searchtext, state.emojilist,
+                    viewmodel = viewmodel,
+                    viewmodel::updatesearch,
+                    downloaddata = {
+                        coroutineScope.launch {
+                            viewmodel.downloaddata(token, context)
+                        }
+                    }, isSearching = isSearching,
+                    imageLoader=imgloader,
+                    context = context
+                )
+            }else{
+                AssetList(state.searchtext, state.stickerlist,
+                    viewmodel = viewmodel,
+                    viewmodel::updatesearch,
+                    downloaddata = {
+                        coroutineScope.launch {
+                            viewmodel.downloaddata(token, context)
+                        }
+                    }, isSearching = isSearching,
+                    imageLoader=imgloader,
+                    context = context
+                )
+            }
+
+        }
+    }
+
 }
 
-
+@Composable
+fun Tabs(title: String, onClick: () -> Unit, selected: Boolean) {
+    Tab(selected = selected, onClick = onClick) {
+        Box(
+            Modifier.height(50.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Text(text = title, modifier = Modifier.align(Alignment.Center))
+        }
+    }
+}
 
 @Composable
 fun AssetList(
@@ -128,22 +175,8 @@ fun AssetList(
     }
 }
 
-
-fun checktype(url:String): String{
-    return if ("json" in url){
-        "lottie"
-    }else if(".apng" in url) {
-         "apng"
-    }else if ("sticker" in url){
-        "sticker"
-    }else{
-        "emote"
-    }
-}
-
 @Composable
 fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
-    val clipboardManager = LocalClipboardManager.current
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -168,7 +201,7 @@ fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
         elevation = 4.dp
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            val emotetype = checktype(emote.url)
+            val emotetype = emote.type
             if (emotetype=="lottie"){
                 LottieImage(url = emote.url)
             } else if (emotetype=="apng"){
@@ -177,7 +210,7 @@ fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
                 AssetImage(url = emote.url)
             }
             Text(
-                text = emote.name + " (${checktype(emote.url)})",
+                text = emote.name + " (${emote.type})",
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.h6
             )
@@ -219,7 +252,7 @@ fun LottieImage(url:String){
 fun ApngImage(url:String,imageLoader: ImageLoader){
 
     CoilImage(
-        imageModel = { url.replace(".apng",".png") }, // loading a network image or local resource using an URL.
+        imageModel = { url }, // loading a network image or local resource using an URL.
         imageOptions = ImageOptions(
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center
