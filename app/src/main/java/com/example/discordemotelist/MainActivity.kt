@@ -3,20 +3,30 @@ package com.example.discordemotelist
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -127,7 +137,8 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
 fun Tabs(title: String, onClick: () -> Unit, selected: Boolean) {
     Tab(selected = selected, onClick = onClick) {
         Box(
-            Modifier.height(50.dp)
+            Modifier
+                .height(50.dp)
                 .align(Alignment.CenterHorizontally)
         ) {
             Text(text = title, modifier = Modifier.align(Alignment.Center))
@@ -147,31 +158,71 @@ fun AssetList(
     context: Context
 ) {
 
-    LazyColumn {
-        item{
-            TextField(searchtext,onsearchchanged,
-            Modifier.fillMaxWidth(),true,false, LocalTextStyle.current,
-                null,null,null,null,false,
-                VisualTransformation.None,KeyboardOptions(imeAction = ImeAction.Search),
-                KeyboardActions(onSearch =  {viewmodel.searchdata(context)}),
-                    true
-            )
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
-        }
-        item {
-            Button(onClick = downloaddata
-                , modifier = Modifier.fillMaxWidth()) {
-                Text(text = "Download")
+
+    Box() {
+        LazyColumn(state=listState) {
+            item{
+                TextField(searchtext,onsearchchanged,
+                        Modifier.fillMaxWidth(),true,false, LocalTextStyle.current,
+                        null,null,null,null,false,
+                        VisualTransformation.None,KeyboardOptions(imeAction = ImeAction.Search),
+                        KeyboardActions(onSearch =  {viewmodel.searchdata(context)}),
+                        true
+                    )
+
+                }
+            item {
+                Button(onClick = downloaddata
+                        , modifier = Modifier.fillMaxWidth()) {
+                        Text(text = "Download")
+                    }
+                }
+            if (isSearching) {
+                item{CircularProgressIndicator()}
+            } else {
+                items(filteredlist) { emote ->
+                        AssetCard(emote, imageLoader,context)
+                }
+
+
             }
-        }
-        if (isSearching) {
-            item{CircularProgressIndicator()}
-        } else {
-           items(filteredlist) { emote ->
-            AssetCard(emote, imageLoader,context)
-        }
+
         }
 
+        val showButton by remember {
+            derivedStateOf {
+                    listState.firstVisibleItemIndex > 0 }
+        }
+
+        AnimatedVisibility(visible = showButton) {
+            ScrollToTopButton(onClick = {
+                coroutineScope.launch {
+                        // Animate scroll to the first item
+                    listState.animateScrollToItem(index = 0)
+                }
+            })
+        }
+    }
+}
+
+@Composable
+fun ScrollToTopButton(onClick: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(bottom = 50.dp), Alignment.BottomEnd
+    ) {
+        Button(
+            onClick = { onClick() }, modifier = Modifier
+                .shadow(10.dp, shape = CircleShape)
+                .clip(shape = CircleShape)
+                .size(65.dp),
+        ) {
+            Icon(Icons.Filled.KeyboardArrowUp, "arrow up")
+        }
     }
 }
 
