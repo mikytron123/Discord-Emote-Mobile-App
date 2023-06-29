@@ -16,7 +16,7 @@ import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.delay
 import javax.inject.Inject
 
-class DownloadServiceImpl @Inject constructor(private val client:HttpClient): DownloadService {
+class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : DownloadService {
     private var baseurl = "https://discord.com/api/v10"
 
     override suspend fun getservers(token: String): List<Guild> {
@@ -53,19 +53,20 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
         return stickerlist
     }
 
-    override suspend fun getstickerpacks(token: String): Stickerpacklist {
-        val response = client.get(urlString = "${this.baseurl}/sticker-packs"){
+    suspend fun getstickerpacks(token: String): Stickerpacklist {
+        val response = client.get(urlString = "${this.baseurl}/sticker-packs") {
             headers {
-                append(HttpHeaders.Authorization,token)
+                append(HttpHeaders.Authorization, token)
             }
         }
-        val stickepacklist:Stickerpacklist = response.body()
+        val stickepacklist: Stickerpacklist = response.body()
         return stickepacklist
     }
 
     suspend fun downloadfiles(token: String, context: Context) {
         val serverlist = getservers(token)
         val assetlist = mutableListOf<MutableMap<String, String>>()
+        val emojibaseurl = "https://cdn.discordapp.com/emojis/"
         for (server in serverlist) {
             val emojilist = getemojis(token, server.id)
 
@@ -76,9 +77,16 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
                 } else {
                     ".png"
                 }
-                val url = "https://cdn.discordapp.com/emojis/" + emoji.id + ext
+                val url = emojibaseurl + emoji.id + ext
 
-                assetlist.add(mutableMapOf("name" to name,"url" to url,"tags" to "","type" to "emote"))
+                assetlist.add(
+                    mutableMapOf(
+                        "name" to name,
+                        "url" to url,
+                        "tags" to "",
+                        "type" to "emote"
+                    )
+                )
             }
 
             delay(1000)
@@ -88,40 +96,44 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
             for (sticker in stickerlist) {
                 var url: String
                 var stickertype: String
-                if (sticker.format_type == 1){
+                if (sticker.format_type == 1) {
                     url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
                     stickertype = "sticker"
-                } else if (sticker.format_type == 2){
+                } else if (sticker.format_type == 2) {
                     url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
                     stickertype = "apng"
-                }else{
+                } else {
                     continue
                 }
-                assetlist.add(mutableMapOf("name" to sticker.name,"url" to url,
-                                           "tags" to sticker.tags,"type" to stickertype))
+                assetlist.add(
+                    mutableMapOf(
+                        "name" to sticker.name, "url" to url,
+                        "tags" to sticker.tags, "type" to stickertype
+                    )
+                )
             }
 
         }
-        val stickerpacklist = getstickerpacks(token)
-        for (pack in stickerpacklist.sticker_packs){
-            for (sticker in pack.stickers){
-                var url: String
-                var stickertype:String
-                if (sticker.format_type==3) {
-                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
-                    stickertype = "lottie"
-                }else if (sticker.format_type ==2){
-                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
-                    stickertype = "apng"
-                }else{
-                    continue
-                }
-                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}",
-                                           "url" to url,"tags" to sticker.tags,
-                                           "type" to stickertype))
-            }
-
-        }
+//        val stickerpacklist = getstickerpacks(token)
+//        for (pack in stickerpacklist.sticker_packs){
+//            for (sticker in pack.stickers){
+//                var url: String
+//                var stickertype:String
+//                if (sticker.format_type==3) {
+//                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
+//                    stickertype = "lottie"
+//                }else if (sticker.format_type ==2){
+//                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
+//                    stickertype = "apng"
+//                }else{
+//                    continue
+//                }
+//                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}",
+//                                           "url" to url,"tags" to sticker.tags,
+//                                           "type" to stickertype))
+//            }
+//
+//        }
         val mapper = jacksonObjectMapper()
         val jsonstr = mapper.writeValueAsString(assetlist)
         val filename = "test.json"
@@ -130,7 +142,7 @@ class DownloadServiceImpl @Inject constructor(private val client:HttpClient): Do
         }
     }
 
-    fun reademotes(context: Context): List<DiscordAsset>{
+    fun reademotes(context: Context): List<DiscordAsset> {
         val jsonstr = context.openFileInput("test.json").bufferedReader().use {
             it.readText()
         }

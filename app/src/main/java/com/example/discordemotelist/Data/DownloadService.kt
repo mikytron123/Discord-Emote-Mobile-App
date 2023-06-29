@@ -13,5 +13,4 @@ interface DownloadService {
 
     suspend fun getstickers(token:String,id:String):List<Sticker>
 
-    suspend fun getstickerpacks(token:String):Stickerpacklist
 }

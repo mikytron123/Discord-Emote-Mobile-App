@@ -3,8 +3,6 @@ package com.example.discordemotelist
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -14,11 +12,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -28,20 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import coil.ImageLoader
-import com.example.discordemotelist.Data.DataSource
 import com.example.discordemotelist.Model.DiscordAsset
 import com.example.discordemotelist.ui.theme.DiscordEmoteListTheme
 import com.example.discordemotelist.ui.viewmodel.EmoteListViewModel
-//import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -49,10 +39,8 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.bumptech.glide.Glide
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import me.tatarka.android.apngrs.coil.ApngDecoderDecoder
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -65,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    val viewmodel:EmoteListViewModel by viewModels()
+                    val viewmodel: EmoteListViewModel by viewModels()
                     EmoteApp(viewmodel)
                 }
             }
@@ -88,8 +76,8 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
     }
 
     val titles = listOf("Emoji", "Stickers")
-    
-    Scaffold() {
+
+    Scaffold {
         Column(modifier = Modifier.padding(it)) {
             TabRow(selectedTabIndex = currentindex) {
                 titles.forEachIndexed { index, title ->
@@ -102,8 +90,9 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
                     )
                 }
             }
-            if (currentindex == 0){
-                AssetList(state.searchtext, state.emojilist,
+            if (currentindex == 0) {
+                AssetList(
+                    state.searchtext, state.emojilist,
                     viewmodel = viewmodel,
                     viewmodel::updatesearch,
                     downloaddata = {
@@ -111,11 +100,12 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
                             viewmodel.downloaddata(token, context)
                         }
                     }, isSearching = isSearching,
-                    imageLoader=imgloader,
+                    imageLoader = imgloader,
                     context = context
                 )
-            }else{
-                AssetList(state.searchtext, state.stickerlist,
+            } else {
+                AssetList(
+                    state.searchtext, state.stickerlist,
                     viewmodel = viewmodel,
                     viewmodel::updatesearch,
                     downloaddata = {
@@ -123,7 +113,7 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
                             viewmodel.downloaddata(token, context)
                         }
                     }, isSearching = isSearching,
-                    imageLoader=imgloader,
+                    imageLoader = imgloader,
                     context = context
                 )
             }
@@ -148,10 +138,10 @@ fun Tabs(title: String, onClick: () -> Unit, selected: Boolean) {
 
 @Composable
 fun AssetList(
-    searchtext:String,
-    filteredlist:List<DiscordAsset>,
+    searchtext: String,
+    filteredlist: List<DiscordAsset>,
     viewmodel: EmoteListViewModel,
-    onsearchchanged: (String)->Unit,
+    onsearchchanged: (String) -> Unit,
     downloaddata: () -> Unit,
     isSearching: Boolean = false,
     imageLoader: ImageLoader,
@@ -162,29 +152,31 @@ fun AssetList(
     val coroutineScope = rememberCoroutineScope()
 
 
-    Box() {
-        LazyColumn(state=listState) {
-            item{
-                TextField(searchtext,onsearchchanged,
-                        Modifier.fillMaxWidth(),true,false, LocalTextStyle.current,
-                        null,null,null,null,false,
-                        VisualTransformation.None,KeyboardOptions(imeAction = ImeAction.Search),
-                        KeyboardActions(onSearch =  {viewmodel.searchdata(context)}),
-                        true
-                    )
-
-                }
+    Box {
+        LazyColumn(state = listState) {
             item {
-                Button(onClick = downloaddata
-                        , modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Download")
-                    }
+                TextField(
+                    searchtext, onsearchchanged,
+                    Modifier.fillMaxWidth(), true, false, LocalTextStyle.current,
+                    null, null, null, null, false,
+                    VisualTransformation.None, KeyboardOptions(imeAction = ImeAction.Search),
+                    KeyboardActions(onSearch = { viewmodel.searchdata(context) }),
+                    true
+                )
+
+            }
+            item {
+                Button(
+                    onClick = downloaddata, modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Download")
                 }
+            }
             if (isSearching) {
-                item{CircularProgressIndicator()}
+                item { CircularProgressIndicator() }
             } else {
                 items(filteredlist) { emote ->
-                        AssetCard(emote, imageLoader,context)
+                    AssetCard(emote, imageLoader, context)
                 }
 
 
@@ -194,13 +186,14 @@ fun AssetList(
 
         val showButton by remember {
             derivedStateOf {
-                    listState.firstVisibleItemIndex > 0 }
+                listState.firstVisibleItemIndex > 0
+            }
         }
 
         AnimatedVisibility(visible = showButton) {
             ScrollToTopButton(onClick = {
                 coroutineScope.launch {
-                        // Animate scroll to the first item
+                    // Animate scroll to the first item
                     listState.animateScrollToItem(index = 0)
                 }
             })
@@ -216,7 +209,8 @@ fun ScrollToTopButton(onClick: () -> Unit) {
             .padding(bottom = 50.dp), Alignment.BottomEnd
     ) {
         Button(
-            onClick = { onClick() }, modifier = Modifier
+            onClick = { onClick() },
+            modifier = Modifier
                 .shadow(10.dp, shape = CircleShape)
                 .clip(shape = CircleShape)
                 .size(65.dp),
@@ -227,7 +221,7 @@ fun ScrollToTopButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
+fun AssetCard(emote: DiscordAsset, imageLoader: ImageLoader, context: Context) {
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -236,7 +230,7 @@ fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
                 val shareurl = if ("emoji" in emote.url) {
                     "${emote.url}?size=48"
                 } else {
-                    emote.url.replace(".apng", ".png")
+                    emote.url
                 }
                 val sendIntent: Intent = Intent().apply {
                     action = Intent.ACTION_SEND
@@ -252,13 +246,18 @@ fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
         elevation = 4.dp
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            val emotetype = emote.type
-            if (emotetype=="lottie"){
-                LottieImage(url = emote.url)
-            } else if (emotetype=="apng"){
-                ApngImage(url = emote.url,imageLoader=imageLoader)
-            } else{
-                AssetImage(url = emote.url)
+            when (emote.type) {
+                "lottie" -> {
+                    LottieImage(url = emote.url)
+                }
+
+                "apng" -> {
+                    ApngImage(url = emote.url, imageLoader = imageLoader)
+                }
+
+                else -> {
+                    AssetImage(url = emote.url)
+                }
             }
             Text(
                 text = emote.name + " (${emote.type})",
@@ -270,13 +269,13 @@ fun AssetCard(emote: DiscordAsset,imageLoader: ImageLoader,context: Context) {
 }
 
 @Composable
-fun AssetImage(url:String){
+fun AssetImage(url: String) {
     GlideImage(
         imageModel = { url }, // loading a network image using an URL.
         imageOptions = ImageOptions(
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center,
-        ) ,
+        ),
         modifier = Modifier
             .fillMaxHeight()
             .height(60.dp)
@@ -286,7 +285,7 @@ fun AssetImage(url:String){
 }
 
 @Composable
-fun LottieImage(url:String){
+fun LottieImage(url: String) {
     val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
     LottieAnimation(
         composition = composition,
@@ -300,7 +299,7 @@ fun LottieImage(url:String){
 
 
 @Composable
-fun ApngImage(url:String,imageLoader: ImageLoader){
+fun ApngImage(url: String, imageLoader: ImageLoader) {
 
     CoilImage(
         imageModel = { url }, // loading a network image or local resource using an URL.
@@ -308,7 +307,7 @@ fun ApngImage(url:String,imageLoader: ImageLoader){
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center
         ),
-        imageLoader = {imageLoader},
+        imageLoader = { imageLoader },
         modifier = Modifier
             .fillMaxHeight()
             .height(60.dp)
