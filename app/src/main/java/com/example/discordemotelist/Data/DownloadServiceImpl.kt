@@ -67,6 +67,7 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
         val serverlist = getservers(token)
         val assetlist = mutableListOf<MutableMap<String, String>>()
         val emojibaseurl = "https://cdn.discordapp.com/emojis/"
+        val stickerbaseurl = "https://cdn.discordapp.com/stickers/"
         for (server in serverlist) {
             val emojilist = getemojis(token, server.id)
 
@@ -97,11 +98,14 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
                 var url: String
                 var stickertype: String
                 if (sticker.format_type == 1) {
-                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
+                    url = stickerbaseurl + sticker.id + ".png"
                     stickertype = "sticker"
                 } else if (sticker.format_type == 2) {
-                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
+                    url = stickerbaseurl + sticker.id + ".png"
                     stickertype = "apng"
+                } else if (sticker.format_type == 4) {
+                    url = stickerbaseurl + sticker.id + ".gif"
+                    stickertype = "sticker"
                 } else {
                     continue
                 }
@@ -114,26 +118,7 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
             }
 
         }
-//        val stickerpacklist = getstickerpacks(token)
-//        for (pack in stickerpacklist.sticker_packs){
-//            for (sticker in pack.stickers){
-//                var url: String
-//                var stickertype:String
-//                if (sticker.format_type==3) {
-//                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".json"
-//                    stickertype = "lottie"
-//                }else if (sticker.format_type ==2){
-//                    url = "https://cdn.discordapp.com/stickers/" + sticker.id + ".png"
-//                    stickertype = "apng"
-//                }else{
-//                    continue
-//                }
-//                assetlist.add(mutableMapOf("name" to "${pack.name} ${sticker.name}",
-//                                           "url" to url,"tags" to sticker.tags,
-//                                           "type" to stickertype))
-//            }
-//
-//        }
+
         val mapper = jacksonObjectMapper()
         val jsonstr = mapper.writeValueAsString(assetlist)
         val filename = "test.json"

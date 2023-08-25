@@ -1,9 +1,7 @@
 package com.example.discordemotelist.di
 
 import android.content.Context
-import androidx.compose.ui.platform.LocalContext
 import coil.ImageLoader
-import com.example.discordemotelist.Data.DownloadServiceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,8 +20,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideshttpclient():HttpClient {
-        return HttpClient(Android){
+    fun provideshttpclient(): HttpClient {
+        return HttpClient(Android) {
             install(ContentNegotiation) {
                 jackson()
             }
@@ -32,8 +30,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providesImageLoader(@ApplicationContext context: Context):ImageLoader{
-        return  ImageLoader.Builder(context)
+    fun providesImageLoader(@ApplicationContext context: Context): ImageLoader {
+        return ImageLoader.Builder(context)
             .components {
                 add(ApngDecoderDecoder.Factory())
             }

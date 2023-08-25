@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,10 +36,6 @@ import com.example.discordemotelist.ui.viewmodel.EmoteListViewModel
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 
@@ -158,7 +155,13 @@ fun AssetList(
                 TextField(
                     searchtext, onsearchchanged,
                     Modifier.fillMaxWidth(), true, false, LocalTextStyle.current,
-                    null, null, null, null, false,
+                    null, null, {
+                        Icon(
+                            imageVector = Icons.Rounded.Search,
+                            tint = MaterialTheme.colors.onBackground,
+                            contentDescription = "Search Icon"
+                        )
+                    }, null, false,
                     VisualTransformation.None, KeyboardOptions(imeAction = ImeAction.Search),
                     KeyboardActions(onSearch = { viewmodel.searchdata(context) }),
                     true
@@ -247,9 +250,6 @@ fun AssetCard(emote: DiscordAsset, imageLoader: ImageLoader, context: Context) {
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             when (emote.type) {
-                "lottie" -> {
-                    LottieImage(url = emote.url)
-                }
 
                 "apng" -> {
                     ApngImage(url = emote.url, imageLoader = imageLoader)
@@ -282,19 +282,6 @@ fun AssetImage(url: String) {
             .width(60.dp)
     )
 
-}
-
-@Composable
-fun LottieImage(url: String) {
-    val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
-    LottieAnimation(
-        composition = composition,
-        iterations = LottieConstants.IterateForever,
-        modifier = Modifier
-            .fillMaxHeight()
-            .height(60.dp)
-            .width(60.dp)
-    )
 }
 
 

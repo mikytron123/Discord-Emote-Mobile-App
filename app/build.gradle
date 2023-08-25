@@ -17,13 +17,13 @@ android {
         release {
 
             storePassword = ksprop["storePassword"]
-            keyAlias=ksprop["keyAlias"]
-            keyPassword=ksprop["keyPassword"]
+            keyAlias = ksprop["keyAlias"]
+            keyPassword = ksprop["keyPassword"]
             storeFile = file(ksprop["storeFile"])
         }
     }
     namespace 'com.example.discordemotelist'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
 
@@ -59,7 +59,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.4'
+        kotlinCompilerExtensionVersion '1.5.0'
     }
     packagingOptions {
         resources {
@@ -72,36 +72,33 @@ kapt {
 }
 
 dependencies {
-    def ktor_version="2.2.3"
-
-    def lottieVersion="6.0.0"
+    def ktor_version = "2.3.3"
 
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-android:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
 
-    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
-    implementation 'androidx.activity:activity-compose:1.7.0'
+    implementation 'androidx.activity:activity-compose:1.7.2'
     implementation "androidx.compose.ui:ui:$compose_ui_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_ui_version"
-    implementation 'androidx.compose.material:material:1.4.0'
+    implementation 'androidx.compose.material:material:1.5.0'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.14.+"
     implementation "com.github.skydoves:landscapist-glide:2.1.8"
 
-    implementation "com.google.dagger:hilt-android:2.45"
+    implementation "com.google.dagger:hilt-android:2.47"
     //kapt 'com.google.dagger:hilt-android-compiler:2.44.2.'
-    kapt 'com.google.dagger:hilt-compiler:2.45'
+    kapt 'com.google.dagger:hilt-compiler:2.47'
 
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
 
-    implementation "com.airbnb.android:lottie-compose:$lottieVersion"
 //    implementation 'com.github.penfeizhou.android.animation:apng:2.25.0'
 //    implementation 'com.github.penfeizhou.android.animation:glide-plugin:2.25.0'
     implementation 'com.linecorp:apng:1.11.0'
