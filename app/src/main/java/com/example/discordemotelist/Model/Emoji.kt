@@ -6,5 +6,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class Emoji(
     val name: String,
     val id: String,
-    val animated: Boolean
+    val animated: Boolean,
 )

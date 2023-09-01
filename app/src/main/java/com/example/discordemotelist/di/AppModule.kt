@@ -7,10 +7,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.ktor.client.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.serialization.jackson.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.jackson.jackson
 import me.tatarka.android.apngrs.coil.ApngDecoderDecoder
 import javax.inject.Singleton
 
@@ -37,6 +37,4 @@ object AppModule {
             }
             .build()
     }
-
-
 }

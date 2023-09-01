@@ -7,5 +7,5 @@ data class Sticker(
     val id: String,
     val name: String,
     val format_type: Int,
-    val tags: String
+    val tags: String,
 )

@@ -20,7 +20,6 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
     private var baseurl = "https://discord.com/api/v10"
 
     override suspend fun getservers(token: String): List<Guild> {
-
         val response = client.get(urlString = "${this.baseurl}/users/@me/guilds") {
             headers {
                 append(HttpHeaders.Authorization, token)
@@ -28,23 +27,20 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
         }
         val serverlist: List<Guild> = response.body()
         return serverlist
-
     }
 
     override suspend fun getemojis(token: String, id: String): List<Emoji> {
-
-        val response = client.get(urlString = "${this.baseurl}/guilds/${id}/emojis") {
+        val response = client.get(urlString = "${this.baseurl}/guilds/$id/emojis") {
             headers {
                 append(HttpHeaders.Authorization, token)
             }
         }
         val emojilist: List<Emoji> = response.body()
         return emojilist
-
     }
 
     override suspend fun getstickers(token: String, id: String): List<Sticker> {
-        val response = client.get(urlString = "${this.baseurl}/guilds/${id}/stickers") {
+        val response = client.get(urlString = "${this.baseurl}/guilds/$id/stickers") {
             headers {
                 append(HttpHeaders.Authorization, token)
             }
@@ -85,8 +81,8 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
                         "name" to name,
                         "url" to url,
                         "tags" to "",
-                        "type" to "emote"
-                    )
+                        "type" to "emote",
+                    ),
                 )
             }
 
@@ -111,12 +107,13 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
                 }
                 assetlist.add(
                     mutableMapOf(
-                        "name" to sticker.name, "url" to url,
-                        "tags" to sticker.tags, "type" to stickertype
-                    )
+                        "name" to sticker.name,
+                        "url" to url,
+                        "tags" to sticker.tags,
+                        "type" to stickertype,
+                    ),
                 )
             }
-
         }
 
         val mapper = jacksonObjectMapper()
@@ -133,6 +130,5 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
         }
         val json = jacksonObjectMapper()
         return json.readValue<List<DiscordAsset>>(jsonstr)
-
     }
 }

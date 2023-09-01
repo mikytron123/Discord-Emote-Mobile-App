@@ -11,5 +11,4 @@ interface DownloadService {
     suspend fun getemojis(token: String, id: String): List<Emoji>
 
     suspend fun getstickers(token: String, id: String): List<Sticker>
-
 }

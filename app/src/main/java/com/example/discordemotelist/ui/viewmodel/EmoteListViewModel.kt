@@ -14,13 +14,13 @@ import javax.inject.Inject
 data class Searchstate(
     val emojilist: List<DiscordAsset> = mutableListOf(),
     val stickerlist: List<DiscordAsset> = mutableListOf(),
-    val searchtext: String = ""
+    val searchtext: String = "",
 )
 
 @HiltViewModel
 class EmoteListViewModel @Inject constructor(
     private val service: DownloadServiceImpl,
-    imageLoader: ImageLoader
+    imageLoader: ImageLoader,
 ) : ViewModel() {
     private val _uistate = MutableStateFlow(Searchstate())
     val uiState = _uistate.asStateFlow()
@@ -53,17 +53,18 @@ class EmoteListViewModel @Inject constructor(
         }
         val alldata = service.reademotes(context)
         val filteredata = alldata.filter {
-            (it.name.lowercase().contains(searchtext.lowercase())
-                    or it.tags.lowercase().contains(searchtext.lowercase()))
+            (
+                it.name.lowercase().contains(searchtext.lowercase())
+                    or it.tags.lowercase().contains(searchtext.lowercase())
+                )
         }
         val emotedata = filteredata.filter { (it.type == "emote") }
         val stickerdata = filteredata.filter { (it.type != "emote") }
         _uistate.update { state ->
             state.copy(
                 emojilist = emotedata,
-                stickerlist = stickerdata
+                stickerlist = stickerdata,
             )
         }
     }
-
 }
