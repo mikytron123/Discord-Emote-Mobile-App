@@ -30,6 +30,8 @@ class EmoteListViewModel @Inject constructor(
 
     val imgloader = imageLoader
 
+    private var alldata = listOf<DiscordAsset>()
+
     fun resetsearch() {
         _uistate.value = Searchstate()
     }
@@ -51,12 +53,15 @@ class EmoteListViewModel @Inject constructor(
         if (searchtext.isBlank()) {
             return
         }
-        val alldata = service.reademotes(context)
+        if (alldata.isEmpty()) {
+            alldata = service.reademotes(context)
+
+        }
         val filteredata = alldata.filter {
             (
-                it.name.lowercase().contains(searchtext.lowercase())
-                    or it.tags.lowercase().contains(searchtext.lowercase())
-                )
+                    it.name.lowercase().contains(searchtext.lowercase())
+                            or it.tags.lowercase().contains(searchtext.lowercase())
+                    )
         }
         val emotedata = filteredata.filter { (it.type == "emote") }
         val stickerdata = filteredata.filter { (it.type != "emote") }

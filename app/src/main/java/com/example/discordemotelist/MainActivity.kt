@@ -180,17 +180,25 @@ fun AssetList(
             item {
                 TextField(
                     searchtext, onsearchchanged,
-                    Modifier.fillMaxWidth(), true, false, LocalTextStyle.current,
-                    null, null, {
+                    Modifier.fillMaxWidth(),
+                    enabled = true,
+                    readOnly = false,
+                    textStyle = LocalTextStyle.current,
+                    label = null,
+                    placeholder = null,
+                    leadingIcon = {
                         Icon(
                             imageVector = Icons.Rounded.Search,
                             tint = MaterialTheme.colors.onBackground,
                             contentDescription = "Search Icon",
                         )
-                    }, null, false,
-                    VisualTransformation.None, KeyboardOptions(imeAction = ImeAction.Search),
-                    KeyboardActions(onSearch = { viewmodel.searchdata(context) }),
-                    true,
+                    },
+                    trailingIcon = null,
+                    isError = false,
+                    visualTransformation = VisualTransformation.None,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { viewmodel.searchdata(context) }),
+                    singleLine = true,
                 )
             }
             item {
