@@ -33,7 +33,7 @@ android {
 
         applicationId = "com.example.discordemotelist"
         minSdk = 29
-        targetSdk = 32
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -74,9 +74,9 @@ kapt {
 }
 
 dependencies {
-    var ktor_version = "2.3.3"
+    val ktor_version = "2.3.3"
 
-    var compose_ui_version = "1.5.0"
+    val compose_ui_version = "1.5.0"
 
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-android:$ktor_version")

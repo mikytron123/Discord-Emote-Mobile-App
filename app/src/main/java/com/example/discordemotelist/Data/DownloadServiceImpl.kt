@@ -63,7 +63,7 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
         val serverlist = getservers(token)
         val assetlist = mutableListOf<MutableMap<String, String>>()
         val emojibaseurl = "https://cdn.discordapp.com/emojis/"
-        val stickerbaseurl = "https://cdn.discordapp.com/stickers/"
+        val stickerbaseurl = "https://media.discordapp.net/stickers/"
         for (server in serverlist) {
             val emojilist = getemojis(token, server.id)
 
@@ -94,13 +94,13 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
                 var url: String
                 var stickertype: String
                 if (sticker.format_type == 1) {
-                    url = stickerbaseurl + sticker.id + ".png"
+                    url = stickerbaseurl + sticker.id + ".webp?size=160"
                     stickertype = "sticker"
                 } else if (sticker.format_type == 2) {
-                    url = stickerbaseurl + sticker.id + ".png"
+                    url = stickerbaseurl + sticker.id + ".png?size=160"
                     stickertype = "apng"
                 } else if (sticker.format_type == 4) {
-                    url = stickerbaseurl + sticker.id + ".gif"
+                    url = stickerbaseurl + sticker.id + ".gif?size=160"
                     stickertype = "sticker"
                 } else {
                     continue

@@ -44,6 +44,7 @@ class EmoteListViewModel @Inject constructor(
 
     suspend fun downloaddata(token: String, context: Context) {
         _isSearching.value = true
+        alldata = listOf<DiscordAsset>()
         service.downloadfiles(token, context)
         _isSearching.value = false
     }
@@ -59,8 +60,8 @@ class EmoteListViewModel @Inject constructor(
         }
         val filteredata = alldata.filter {
             (
-                    it.name.lowercase().contains(searchtext.lowercase())
-                            or it.tags.lowercase().contains(searchtext.lowercase())
+                    it.name.contains(searchtext,true)
+                            or it.tags.contains(searchtext,true)
                     )
         }
         val emotedata = filteredata.filter { (it.type == "emote") }
