@@ -43,7 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -95,7 +95,7 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
     val imgloader = viewmodel.imgloader
 
     var currentindex by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     val titles = listOf("Emoji", "Stickers")
@@ -288,7 +288,7 @@ fun AssetCard(emote: DiscordAsset, imageLoader: ImageLoader, context: Context) {
                 }
             }
             Text(
-                text = emote.name + " (${emote.type})",
+                text = emote.name,
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.h6,
             )
