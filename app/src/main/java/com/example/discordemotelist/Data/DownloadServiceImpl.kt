@@ -82,6 +82,7 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
                         "url" to url,
                         "tags" to "",
                         "type" to "emote",
+                        "server" to server.name
                     ),
                 )
             }
@@ -111,6 +112,7 @@ class DownloadServiceImpl @Inject constructor(private val client: HttpClient) : 
                         "url" to url,
                         "tags" to sticker.tags,
                         "type" to stickertype,
+                        "server" to server.name
                     ),
                 )
             }

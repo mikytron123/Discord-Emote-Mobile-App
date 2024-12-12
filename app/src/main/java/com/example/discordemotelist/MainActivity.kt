@@ -27,6 +27,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
@@ -44,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -64,12 +69,16 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.glide.GlideImage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val viewmodel: EmoteListViewModel by viewModels()
+        val serverList = getServerList(viewmodel)
         setContent {
             DiscordEmoteListTheme(true) {
                 // A surface container using the 'background' color from the theme
@@ -77,16 +86,26 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background,
                 ) {
-                    val viewmodel: EmoteListViewModel by viewModels()
-                    EmoteApp(viewmodel)
+                    EmoteApp(viewmodel,serverList)
                 }
             }
         }
     }
 }
 
+fun getServerList(viewmodel: EmoteListViewModel):List<String>{
+    val token: String = BuildConfig.TOKEN
+    val coroutineScope = CoroutineScope(Dispatchers.Default)
+    var serverList = mutableListOf("")
+    coroutineScope.launch {
+        val allServerList = viewmodel.loadServers(token)
+        serverList.addAll(allServerList)
+    }
+    return serverList
+}
+
 @Composable
-fun EmoteApp(viewmodel: EmoteListViewModel) {
+fun EmoteApp(viewmodel: EmoteListViewModel, serverList: List<String>) {
     val token: String = BuildConfig.TOKEN
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -94,31 +113,34 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
     val isSearching by viewmodel.isSearching.collectAsState()
     val imgloader = viewmodel.imgloader
 
-    var currentindex by remember {
+    var currentIndex by remember {
         mutableIntStateOf(0)
     }
 
     val titles = listOf("Emoji", "Stickers")
 
+
     Scaffold {
         Column(modifier = Modifier.padding(it)) {
-            TabRow(selectedTabIndex = currentindex) {
+            TabRow(selectedTabIndex = currentIndex) {
                 titles.forEachIndexed { index, title ->
                     Tabs(
                         title = title,
                         onClick = {
-                            currentindex = index
+                            currentIndex = index
                         },
-                        selected = (index == currentindex),
+                        selected = (index == currentIndex),
                     )
                 }
             }
-            if (currentindex == 0) {
+            if (currentIndex == 0) {
                 AssetList(
                     state.searchtext,
-                    state.emojilist,
+                    serverList,
+                    state.emojiList,
                     viewmodel = viewmodel,
-                    viewmodel::updatesearch,
+                    viewmodel::updateSearch,
+                    viewmodel::updateServer,
                     downloaddata = {
                         coroutineScope.launch {
                             viewmodel.downloaddata(token, context)
@@ -131,9 +153,11 @@ fun EmoteApp(viewmodel: EmoteListViewModel) {
             } else {
                 AssetList(
                     state.searchtext,
-                    state.stickerlist,
+                    serverList,
+                    state.stickerList,
                     viewmodel = viewmodel,
-                    viewmodel::updatesearch,
+                    viewmodel::updateSearch,
+                    viewmodel::updateServer,
                     downloaddata = {
                         coroutineScope.launch {
                             viewmodel.downloaddata(token, context)
@@ -163,10 +187,12 @@ fun Tabs(title: String, onClick: () -> Unit, selected: Boolean) {
 
 @Composable
 fun AssetList(
-    searchtext: String,
-    filteredlist: List<DiscordAsset>,
+    searchText: String,
+    serverList:List<String>,
+    filteredList: List<DiscordAsset>,
     viewmodel: EmoteListViewModel,
-    onsearchchanged: (String) -> Unit,
+    onSearchChanged: (String) -> Unit,
+    onServerChanged: (String)-> Unit,
     downloaddata: () -> Unit,
     isSearching: Boolean = false,
     imageLoader: ImageLoader,
@@ -179,7 +205,7 @@ fun AssetList(
         LazyColumn(state = listState) {
             item {
                 TextField(
-                    searchtext, onsearchchanged,
+                    searchText, onSearchChanged,
                     Modifier.fillMaxWidth(),
                     enabled = true,
                     readOnly = false,
@@ -197,9 +223,12 @@ fun AssetList(
                     isError = false,
                     visualTransformation = VisualTransformation.None,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { viewmodel.searchdata(context) }),
+                    keyboardActions = KeyboardActions(onSearch = { viewmodel.searchData(context) }),
                     singleLine = true,
                 )
+            }
+            item {
+                FilterMenu(serverList,onServerChanged)
             }
             item {
                 Button(
@@ -212,7 +241,7 @@ fun AssetList(
             if (isSearching) {
                 item { CircularProgressIndicator() }
             } else {
-                items(filteredlist) { emote ->
+                items(filteredList) { emote ->
                     AssetCard(emote, imageLoader, context)
                 }
             }
@@ -231,6 +260,42 @@ fun AssetList(
                     listState.animateScrollToItem(index = 0)
                 }
             })
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun FilterMenu(serverList: List<String>, onServerChanged: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf(serverList[0]) }
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = {expanded=it}) {
+        TextField(
+            value = selectedOption,
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            onValueChange = { },
+            label = { Text("Select a Server") },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            }
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            serverList.forEach { option ->
+                DropdownMenuItem(
+                    onClick = {
+                        selectedOption = option
+                        onServerChanged(selectedOption)
+                        expanded = false
+                    }
+                ){
+                    Text(option)
+                }
+            }
         }
     }
 }
@@ -261,14 +326,14 @@ fun AssetCard(emote: DiscordAsset, imageLoader: ImageLoader, context: Context) {
         modifier = Modifier
             .padding(8.dp)
             .clickable {
-                val shareurl = if ("emoji" in emote.url) {
+                val shareUrl = if ("emoji" in emote.url) {
                     "${emote.url}?size=48"
                 } else {
                     emote.url
                 }
                 val sendIntent: Intent = Intent().apply {
                     action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, shareurl)
+                    putExtra(Intent.EXTRA_TEXT, shareUrl)
                     type = "text/plain"
                 }
 

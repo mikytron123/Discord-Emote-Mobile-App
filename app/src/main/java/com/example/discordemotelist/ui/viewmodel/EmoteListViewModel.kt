@@ -12,8 +12,9 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 data class Searchstate(
-    val emojilist: List<DiscordAsset> = mutableListOf(),
-    val stickerlist: List<DiscordAsset> = mutableListOf(),
+    val emojiList: List<DiscordAsset> = mutableListOf(),
+    val stickerList: List<DiscordAsset> = mutableListOf(),
+    val serverfilter: String = "",
     val searchtext: String = "",
 )
 
@@ -32,13 +33,26 @@ class EmoteListViewModel @Inject constructor(
 
     private var alldata = listOf<DiscordAsset>()
 
+    suspend fun loadServers(token:String):List<String>{
+        val allServers = service.getservers(token)
+
+        val serverList = allServers.map { it.name }.distinct().sorted()
+        return serverList
+    }
+
     fun resetsearch() {
         _uistate.value = Searchstate()
     }
 
-    fun updatesearch(text: String) {
+    fun updateSearch(text: String) {
         _uistate.update { state ->
             state.copy(searchtext = text)
+        }
+    }
+
+    fun updateServer(text:String){
+        _uistate.update { state ->
+            state.copy(serverfilter = text)
         }
     }
 
@@ -49,27 +63,32 @@ class EmoteListViewModel @Inject constructor(
         _isSearching.value = false
     }
 
-    fun searchdata(context: Context) {
+    fun searchData(context: Context) {
         val searchtext = _uistate.value.searchtext
-        if (searchtext.isBlank()) {
+        val servertext = _uistate.value.serverfilter
+        if (searchtext.isBlank() && servertext.isBlank() ) {
             return
         }
         if (alldata.isEmpty()) {
             alldata = service.reademotes(context)
-
         }
-        val filteredata = alldata.filter {
+        var filterData = alldata.filter {
             (
-                    it.name.contains(searchtext,true)
-                            or it.tags.contains(searchtext,true)
+                    (it.name.contains(searchtext,true)
+                            or it.tags.contains(searchtext,true))
+
                     )
         }
-        val emotedata = filteredata.filter { (it.type == "emote") }
-        val stickerdata = filteredata.filter { (it.type != "emote") }
+        if (servertext.isNotBlank()){
+            filterData = filterData.filter { it.server == servertext }
+        }
+
+        val emotedata = filterData.filter { (it.type == "emote") }
+        val stickerdata = filterData.filter { (it.type != "emote") }
         _uistate.update { state ->
             state.copy(
-                emojilist = emotedata,
-                stickerlist = stickerdata,
+                emojiList = emotedata,
+                stickerList = stickerdata,
             )
         }
     }

@@ -5,4 +5,5 @@ data class DiscordAsset(
     val url: String,
     val tags: String,
     val type: String,
+    val server: String
 )
