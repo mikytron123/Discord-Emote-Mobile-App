@@ -33,7 +33,7 @@ class EmoteListViewModel @Inject constructor(
 
     private var alldata = listOf<DiscordAsset>()
 
-    suspend fun loadServers(token:String):List<String>{
+    suspend fun loadServers(token: String): List<String> {
         val allServers = service.getservers(token)
 
         val serverList = allServers.map { it.name }.distinct().sorted()
@@ -50,7 +50,7 @@ class EmoteListViewModel @Inject constructor(
         }
     }
 
-    fun updateServer(text:String){
+    fun updateServer(text: String) {
         _uistate.update { state ->
             state.copy(serverfilter = text)
         }
@@ -58,7 +58,7 @@ class EmoteListViewModel @Inject constructor(
 
     suspend fun downloaddata(token: String, context: Context) {
         _isSearching.value = true
-        alldata = listOf<DiscordAsset>()
+        alldata = listOf()
         service.downloadfiles(token, context)
         _isSearching.value = false
     }
@@ -66,20 +66,24 @@ class EmoteListViewModel @Inject constructor(
     fun searchData(context: Context) {
         val searchtext = _uistate.value.searchtext
         val servertext = _uistate.value.serverfilter
-        if (searchtext.isBlank() && servertext.isBlank() ) {
+
+        if (searchtext.isBlank() && servertext.isBlank()) {
             return
         }
         if (alldata.isEmpty()) {
             alldata = service.reademotes(context)
         }
-        var filterData = alldata.filter {
-            (
-                    (it.name.contains(searchtext,true)
-                            or it.tags.contains(searchtext,true))
+        var filterData = alldata
+        if (searchtext.isNotBlank()) {
+            filterData = filterData.filter {
+                (
+                        (it.name.contains(searchtext, true)
+                                or it.tags.contains(searchtext, true))
 
-                    )
+                        )
+            }
         }
-        if (servertext.isNotBlank()){
+        if (servertext.isNotBlank()) {
             filterData = filterData.filter { it.server == servertext }
         }
 
