@@ -79,6 +79,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val viewmodel: EmoteListViewModel by viewModels()
         val serverList = getServerList(viewmodel)
+        viewmodel.updateServerList(serverList)
         setContent {
             DiscordEmoteListTheme(true) {
                 // A surface container using the 'background' color from the theme
@@ -86,7 +87,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background,
                 ) {
-                    EmoteApp(viewmodel,serverList)
+                    EmoteApp(viewmodel)
                 }
             }
         }
@@ -105,7 +106,7 @@ fun getServerList(viewmodel: EmoteListViewModel):List<String>{
 }
 
 @Composable
-fun EmoteApp(viewmodel: EmoteListViewModel, serverList: List<String>) {
+fun EmoteApp(viewmodel: EmoteListViewModel) {
     val token: String = BuildConfig.TOKEN
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -136,11 +137,12 @@ fun EmoteApp(viewmodel: EmoteListViewModel, serverList: List<String>) {
             if (currentIndex == 0) {
                 AssetList(
                     state.searchtext,
-                    serverList,
+                    state.serverList,
                     state.emojiList,
                     viewmodel = viewmodel,
                     viewmodel::updateSearch,
                     viewmodel::updateServer,
+                    resetdata = viewmodel::resetSearch,
                     downloaddata = {
                         coroutineScope.launch {
                             viewmodel.downloaddata(token, context)
@@ -153,11 +155,12 @@ fun EmoteApp(viewmodel: EmoteListViewModel, serverList: List<String>) {
             } else {
                 AssetList(
                     state.searchtext,
-                    serverList,
+                    state.serverList,
                     state.stickerList,
                     viewmodel = viewmodel,
                     viewmodel::updateSearch,
                     viewmodel::updateServer,
+                    resetdata = viewmodel::resetSearch,
                     downloaddata = {
                         coroutineScope.launch {
                             viewmodel.downloaddata(token, context)
@@ -193,6 +196,7 @@ fun AssetList(
     viewmodel: EmoteListViewModel,
     onSearchChanged: (String) -> Unit,
     onServerChanged: (String)-> Unit,
+    resetdata: () -> Unit,
     downloaddata: () -> Unit,
     isSearching: Boolean = false,
     imageLoader: ImageLoader,
@@ -229,6 +233,14 @@ fun AssetList(
             }
             item {
                 FilterMenu(serverList,onServerChanged)
+            }
+            item {
+                Button(
+                    onClick = resetdata,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(text = "Reset")
+                }
             }
             item {
                 Button(

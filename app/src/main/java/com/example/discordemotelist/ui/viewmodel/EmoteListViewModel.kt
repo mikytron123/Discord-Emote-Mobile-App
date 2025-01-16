@@ -14,6 +14,7 @@ import javax.inject.Inject
 data class Searchstate(
     val emojiList: List<DiscordAsset> = mutableListOf(),
     val stickerList: List<DiscordAsset> = mutableListOf(),
+    val serverList: List<String> = mutableListOf(),
     val serverfilter: String = "",
     val searchtext: String = "",
 )
@@ -32,16 +33,19 @@ class EmoteListViewModel @Inject constructor(
     val imgloader = imageLoader
 
     private var alldata = listOf<DiscordAsset>()
+    private var allServerList = listOf<String>()
 
     suspend fun loadServers(token: String): List<String> {
         val allServers = service.getservers(token)
 
-        val serverList = allServers.map { it.name }.distinct().sorted()
+        val serverList = allServers.map { it.name }.distinct()
+        allServerList = listOf("") + serverList
         return serverList
     }
 
-    fun resetsearch() {
+    fun resetSearch() {
         _uistate.value = Searchstate()
+        updateServerList(allServerList)
     }
 
     fun updateSearch(text: String) {
@@ -53,6 +57,12 @@ class EmoteListViewModel @Inject constructor(
     fun updateServer(text: String) {
         _uistate.update { state ->
             state.copy(serverfilter = text)
+        }
+    }
+
+    fun updateServerList(serverList: List<String>){
+        _uistate.update { state ->
+            state.copy(serverList=serverList)
         }
     }
 
@@ -86,6 +96,7 @@ class EmoteListViewModel @Inject constructor(
         if (servertext.isNotBlank()) {
             filterData = filterData.filter { it.server == servertext }
         }
+        val filterServerList = listOf("") + filterData.map { it.server }.distinct()
 
         val emotedata = filterData.filter { (it.type == "emote") }
         val stickerdata = filterData.filter { (it.type != "emote") }
@@ -93,6 +104,7 @@ class EmoteListViewModel @Inject constructor(
             state.copy(
                 emojiList = emotedata,
                 stickerList = stickerdata,
+                serverList = filterServerList
             )
         }
     }
