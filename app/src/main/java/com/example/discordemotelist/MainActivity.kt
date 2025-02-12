@@ -232,16 +232,16 @@ fun AssetList(
                 )
             }
             item {
-                FilterMenu(serverList,onServerChanged)
+                FilterMenu(serverList,onServerChanged,resetdata)
             }
-            item {
-                Button(
-                    onClick = resetdata,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(text = "Reset")
-                }
-            }
+//            item {
+//                Button(
+//                    onClick = resetdata,
+//                    modifier = Modifier.fillMaxWidth(),
+//                ) {
+//                    Text(text = "Reset")
+//                }
+//            }
             item {
                 Button(
                     onClick = downloaddata,
@@ -278,10 +278,10 @@ fun AssetList(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FilterMenu(serverList: List<String>, onServerChanged: (String) -> Unit) {
+fun FilterMenu(serverList: List<String>, onServerChanged: (String) -> Unit,resetdata: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf(serverList[0]) }
-
+Column(modifier = Modifier.fillMaxWidth()) {
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = {expanded=it}) {
         TextField(
             value = selectedOption,
@@ -310,6 +310,14 @@ fun FilterMenu(serverList: List<String>, onServerChanged: (String) -> Unit) {
             }
         }
     }
+    Button(
+        onClick = {selectedOption=serverList[0]
+            resetdata()},
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(text = "Reset")
+    }
+}
 }
 
 @Composable

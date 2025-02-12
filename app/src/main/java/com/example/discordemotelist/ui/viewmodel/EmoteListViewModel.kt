@@ -44,8 +44,7 @@ class EmoteListViewModel @Inject constructor(
     }
 
     fun resetSearch() {
-        _uistate.value = Searchstate()
-        updateServerList(allServerList)
+        _uistate.value = Searchstate(serverList = allServerList)
     }
 
     fun updateSearch(text: String) {
